@@ -17,6 +17,8 @@ individual product detail page provides a list of available sellers
 with the count of the product in their inventory. The product detail
 page also includes product reviews and recommended related products.
 
+Demo video: [https://drive.google.com/file/d/19ORQtDtYF916XbHmHt9_840wBkwut4ws/view?usp=drive_link]
+
 To run the website, in your container shell, go into the repository
 directory and issue the following commands:
 ```
