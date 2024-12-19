@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+{% block content %}
+<h2>Edit Product</h2>
+<form method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}" required>
+    </div>
+    <div class="form-group">
+        <label for="price">Price</label>
+        <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ product.price }}" required>
+    </div>
+    <div class="form-group">
+        <label for="category">Category</label>
+        <select name="category" id="category" class="form-control" required>
+            <option value="Beauty" {% if product.category == 'Beauty' %}selected{% endif %}>Beauty</option>
+            <option value="Books" {% if product.category == 'Books' %}selected{% endif %}>Books</option>
+            <option value="Clothing" {% if product.category == 'Clothing' %}selected{% endif %}>Clothing</option>
+            <option value="Food" {% if product.category == 'Food' %}selected{% endif %}>Food</option>
+            <option value="Health" {% if product.category == 'Health' %}selected{% endif %}>Health</option>
+            <option value="Home" {% if product.category == 'Home' %}selected{% endif %}>Home</option>
+            <option value="Toys" {% if product.category == 'Toys' %}selected{% endif %}>Toys</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="4">{{ product.description }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="image">Upload Image (Optional, JPEG only)</label>
+        <input type="file" class="form-control-file" id="image" name="image" accept=".jpeg">
+    </div>    
+    <button type="submit" class="btn btn-primary">Update Product</button>
+</form>
+{% endblock %}

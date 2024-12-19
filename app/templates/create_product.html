@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Create New Product</h2>
+
+<!-- Display Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Product Creation Form -->
+<form method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+        <label for="quantity">Quantity</label>
+        <input type="number" step="1" class="form-control" id="quantity" name="quantity" required>
+    </div>
+    <div class="form-group">
+        <label for="price">Price</label>
+        <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+    </div>
+    <div class="form-group">
+        <label for="category">Category</label>
+        <select name="category" id="category" class="form-control" required>
+            <option value="Beauty">Beauty</option>
+            <option value="Books">Books</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Food">Food</option>
+            <option value="Health">Health</option>
+            <option value="Home">Home</option>
+            <option value="Toys">Toys</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="image">Upload Image (Optional, JPEG only)</label>
+        <input type="file" class="form-control-file" id="image" name="image" accept=".jpeg">
+    </div>    
+    <button type="submit" class="btn btn-primary">Create Product</button>
+</form>
+
+<!-- Popup for Existing Product -->
+{% if existing_product_id %}
+<div id="existing-product-popup" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    padding: 15px;
+    z-index: 1000;
+    display: none; /* Hidden initially */
+">
+    <p>There is already a product of the same name. <a href="{{ url_for('product.get_product', id=existing_product_id) }}" style="color: #721c24; text-decoration: underline;">See it here.</a></p>
+    <button onclick="closePopup()" style="background: none; border: none; color: #721c24; font-weight: bold; float: right;">&times;</button>
+</div>
+{% endif %}
+
+<!-- JavaScript to Handle Popup -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const popup = document.getElementById('existing-product-popup');
+        if (popup) {
+            popup.style.display = 'block'; // Show the popup
+        }
+    });
+
+    function closePopup() {
+        const popup = document.getElementById('existing-product-popup');
+        if (popup) {
+            popup.style.display = 'none'; // Hide the popup
+        }
+    }
+</script>
+{% endblock %}

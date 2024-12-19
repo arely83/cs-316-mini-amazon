@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<br><br>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Fruit List Section -->
+        <div class="col-md-12">
+            <h1 style="font-size: 2.5rem; color: #34495e; text-align: center; margin-bottom: 40px;">Your Order History</h1>
+            <div class="fruit-items">
+                {% if in_fruit %}
+                    {% for order in in_fruit %}
+                        <div class="order-summary mb-5" style="padding: 20px; background-color: #f0f4f8; border-radius: 15px;">
+                            <h4 class="font-weight-bold" style="font-size: 1.75rem; color: #2c3e50; text-align: center;">Order placed at: {{ order.order_time.strftime('%Y-%m-%d %H:%M:%S') }}</h4>
+                            <h4 class="font-weight-bold text-primary text-center" style="font-size: 1.5rem; color: #007bff; margin-top: 10px;">Grand Total: ${{ order.grand_total | default(0.0) }}</h4>
+
+                            {% for line in order.items_list %}
+                            <div class="card fruit-item mb-4" style="width: 100%; padding: 15px 20px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); margin-top: 20px;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center;">
+                                    <!-- Updated Product Name Styling -->
+                                    <div style="flex: 3; padding-right: 20px;">
+                                        <h2 class="fruit-title font-weight-bold" style="font-size: 1.8rem; color: #2c3e50;">{{ line.name }}</h2>
+                                        <!-- Updated Product ID Styling -->
+                                        <h4 class="fruit-subtitle mb-2" style="font-size: 1.1rem; color: #7f8c8d;">Product ID: <span style="font-weight: bold; color: #34495e;">{{ line.pid }}</span></h4>
+                                        <h4 class="fruit-subtitle mb-2" style="font-size: 1.3rem; color: #16a085;">Price: ${{ line.price | round(2) }}</h4>
+                                    </div>
+                                    
+                                    <!-- Quantity and Subtotal Section -->
+                                    <div style="flex: 2; text-align: center; border-left: 1px solid #ccc; padding: 10px;">
+                                        <h5 class="font-weight-bold" style="font-size: 1.2rem; color: #27ae60;">Quantity: {{ line.quantity }}</h5>
+                                        <h5 class="font-weight-bold mt-3" style="font-size: 1.2rem; color: #c0392b;">Subtotal: ${{ line.subtotal | round(2) }}</h5>
+                                    </div>
+
+                                    <!-- Fulfillment Status with Icon -->
+                                    <div style="flex: 3; text-align: center; padding: 10px;">
+                                        {% if order.time_fulfilled %}
+                                            <h5 class="font-weight-bold text-success" style="font-size: 1.3rem; background-color: #eafaf1; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center;">
+                                                <span style="margin-right: 10px; font-size: 1.5rem;">😊</span> Fulfilled on: {{ order.time_fulfilled }}
+                                            </h5>
+                                        {% else %}
+                                            <h5 class="font-weight-bold text-warning" style="font-size: 1.3rem; background-color: #fff3cd; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center;">
+                                                <span style="margin-right: 10px; font-size: 1.5rem;">😞</span> Not Fulfilled Yet
+                                            </h5>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align: center; font-size: 1.5rem; color: #7f8c8d;">No Orders found in your Order History.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Image Section -->
+        <div class="col-md-4">
+            <img src="{{ product.image_path }}" alt="{{ product.name }}" class="img-thumbnail w-100">
+        </div>
+
+        <!-- Product Details Section -->
+        <div class="col-md-8">
+            <h1>{{ product.name }}</h1>
+            <p><strong>Category:</strong> {{ product.category }}</p>
+            <p><strong>Price:</strong> ${{ product.price | round(2) }}</p>
+            <p><strong>Description:</strong> {{ product.description }}</p>
+            <p><strong>Average Rating:</strong> {{ avg_rating | round(2) }}</p>
+            <p><strong>Number of Reviews:</strong> {{ review_number }}</p>
+
+            {% if user_authenticated %}
+            <div class="mt-3">
+                <!-- Add to Wishlist Button -->
+                <form action="{{ url_for('wishlist.wishlist_add', product_id=product.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-medium">Add to Wishlist</button>
+                </form>
+            
+                <!-- Find a Seller Button -->
+                <a href="#sellers" class="btn btn-medium">Find a Seller</a>
+            
+                <!-- Submit Review Button -->
+                <a href="{{ url_for('reviews.submit', product_id=product.id) }}" class="btn btn-medium">Submit Review</a>
+            </div>
+
+            <!-- Edit Product Button -->
+            {% if product.sellerid == current_user.id %}
+            <div class="mt-3">
+                <a href="{{ url_for('product.edit_product', product_id=product.id) }}" class="btn btn-light">Edit Product</a>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sellers Section -->
+    <div class="mt-5" id="sellers">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>Sellers</h3>
+            {% if user_authenticated and current_user.account_type == 'Seller'%}
+            <form action="{{ url_for('inventory.inventory_add', product_id=product.id) }}" method="POST">
+                <input type="number" name="quantity" min="1" class="form-control" style="width: 150px;" placeholder="Quantity" required>
+                <button type="submit" class="btn btn-medium">I'd like to sell this item</button>
+            </form>
+            {% endif %}
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Seller</th>
+                    <th>Quantity in Stock</th>
+                    <th>Add to Cart</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for seller in sellers %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('users.public_user', uid=seller.sellerid) }}" style="color: black;">
+                            {{ seller.firstname }} {{ seller.lastname }}
+                        </a>
+                    </td>
+                    <td>{{ seller.quantity }}</td>
+                    <td>
+                        <form action="{{ url_for('carts.add_to_cart', product_id=product.id, seller_id=seller.sellerid) }}" method="POST">
+                            <input type="number" name="quantity" min="1" max="{{ seller.quantity }}" class="form-control" style="width: 150px;" placeholder="Quantity">
+                            <button type="submit" class="btn btn-black">Add to Cart</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="mt-5">
+        <h3>Reviews</h3>
+        {% if reviews %}
+        <ul>
+            {% for review in reviews %}
+            <li>
+                <strong>{{ review.firstname }} {{ review.lastname }}:</strong>
+                <span>{{ review.rating }}/5</span>
+                <p>{{ review.details }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No reviews yet.</p>
+        {% endif %}
+    </div>  
+    
+    <div class="mt-5">
+        <h3>See Related Products:</h3>
+        {% if related_products %}
+        <div class="row">
+            {% for related in related_products %}
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="{{ related.image_path }}" alt="{{ related.name }}" style="height: auto; width: auto;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ related.name }}</h5>
+                        <p class="card-text">${{ related.price | round(2) }}</p>
+                        <a href="{{ url_for('product.get_product', id=related.id) }}" class="btn btn-medium">View Product</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <nav aria-label="Pagination" class="mt-3">
+            <ul class="pagination">
+                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('product.get_product', id=product.id, page=current_page-1, k=per_page) }}">&laquo; Previous</a>
+                </li>
+                {% for p in range(1, (total_related // per_page) + 2) %}
+                <li class="page-item {% if p == current_page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('product.get_product', id=product.id, page=p, k=per_page) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if current_page == (total_related // per_page) + 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('product.get_product', id=product.id, page=current_page+1, k=per_page) }}">Next &raquo;</a>
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <p>No related products found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

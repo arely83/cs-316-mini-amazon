@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<head>
+  <title>Update Review</title>
+</head>
+
+<body>
+  <form method = "POST" action = "{{ url_for('reviews.update', product_id = product_id) }}">
+    {{ form.hidden_tag() }}
+    <p>
+      <label for = "rating">{{ form.rating.label }}</label>
+      {{ form.rating(min = 1, max = 5) }}
+      {% for error in form.rating.errors %}
+      <span style="color: red;">[{{ error }}]</span>
+      {% endfor %}
+    </p>
+    <p>
+      <label for = "details">{{ form.details.label }}</label>
+      {{ form.details(size = 32) }}
+      {% for error in form.details.errors %}
+      <span style="color: red;">[{{ error }}]</span>
+      {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+  </form>
+</body>
+
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center" style="margin-top: 25px; margin-bottom: 20px;">
+  <h2>Products for Sale:</h2>
+  {% if current_user.is_authenticated %}
+  <a href="{{ url_for('product.create_product') }}" class="btn btn-black">Create New Product</a>
+  {% endif %}
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Form for entering filtering and sorting criteria -->
+<form method="GET" action="{{ url_for('product.get_all_or_top_k_products') }}" class="form-inline mb-3">
+    <!--div class="form-group mx-sm-3 mb-2">
+        <label for="k" class="sr-only">Number of Products</label>
+        <input type="number" class="form-control" id="k" name="k" placeholder="Number of Products">
+    </div-->
+
+    <div class="form-group mx-sm-3 mb-2">
+        <label for="search" class="sr-only">Search</label>
+        <input type="text" class="form-control" id="search" name="search" placeholder="Search Products">
+    </div>
+
+    <div class="form-group mx-sm-3 mb-2">
+        <label for="min_price" class="sr-only">Min Price</label>
+        <input type="number" class="form-control" id="min_price" name="min_price" placeholder="Min Price">
+    </div>
+    <div class="form-group mx-sm-3 mb-2">
+        <label for="max_price" class="sr-only">Max Price</label>
+        <input type="number" class="form-control" id="max_price" name="max_price" placeholder="Max Price">
+    </div>
+
+    <div class="form-group mx-sm-3 mb-2">
+        <label for="category" class="sr-only">Category</label>
+        <select name="category" id="category" class="form-control">
+            <option value="">All Categories</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Books">Books</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Food">Food</option>
+            <option value="Health">Health</option>
+            <option value="Home">Home</option>
+            <option value="Toys">Toys</option>
+        </select>
+    </div>
+
+    <div class="form-group mx-sm-3 mb-2">
+        <label for="rating_min" class="sr-only">Minimum Rating</label>
+        <input type="number" step="0.1" class="form-control" id="rating_min" name="rating_min" placeholder="Min Rating">
+    </div>
+
+    <button type="submit" class="btn btn-medium">Filter</button>
+
+    <div style="margin-left: 15px">
+      <h7>Click table headers to sort</h7>
+    </div>
+</form>
+
+<!-- Table to display products with sortable headers -->
+<table class='table table-hover table-bordered container'>
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">Image</th>
+      <th scope="col"><a href="{{ url_for('product.get_all_or_top_k_products', sort_by='id', order='asc' if order == 'desc' else 'desc') }}">Product ID</a></th>
+      <th scope="col"><a href="{{ url_for('product.get_all_or_top_k_products', sort_by='name', order='asc' if order == 'desc' else 'desc') }}">Product Name</a></th>
+      <th scope="col"><a href="{{ url_for('product.get_all_or_top_k_products', sort_by='price', order='asc' if order == 'desc' else 'desc') }}">Price</a></th>
+      <th scope="col"><a href="{{ url_for('product.get_all_or_top_k_products', sort_by='category', order='asc' if order == 'desc' else 'desc') }}">Category</a></th>
+      <th scope="col" style="width:9%"><a href="{{ url_for('product.get_all_or_top_k_products', sort_by='avg_rating', order='asc' if order == 'desc' else 'desc') }}">Rating</a></th>
+      {% if current_user.is_authenticated %}
+        <th scope="col">Add to Wishlist</th>
+        <th scope="col">Submit Review</th>
+      {% endif %}
+    </tr>
+  </thead>
+  </tbody>
+    {% for item in product_details %}
+        <tr>
+            <td>
+              <img src="{{ item.product.image_path }}" alt="Product Image" class="img-thumbnail"
+                style="max-width: 100px; max-height: 100px; cursor: pointer;"
+                data-toggle="modal" data-target="#imageModal{{ item.product.id }}">
+            </td>
+            <th scope="row">{{ item.product.id }}</th>
+            <td>
+                <a href="{{ url_for('product.get_product', id=item.product.id) }}" style="color: black;">
+                    {{ item.product.name }}
+                </a>
+                <div class="mt-2">
+                  <button class="btn btn-light btn-sm" data-toggle="modal" data-target="#descriptionModal{{ item.product.id }}">
+                    Quick View Description
+                  </button>
+                </div>      
+            </td>
+            <td>{{ item.product.price | round(2) }}</td>
+            <td>{{ item.product.category }}</td>
+            <td>
+                {% set full_stars = (item.avg_rating | round) | int %}
+                {% for i in range(full_stars) %}
+                    &#9733;
+                {% endfor %}
+                {% for i in range(5 - full_stars) %}
+                    &#9734;
+                {% endfor %}
+                <span>({{ item.review_count }})</span>
+                <form action="{{ url_for('reviews.get_product_reviews', product_id=item.product.id) }}" method="POST">
+                    <input type="submit" value="See Reviews" class="btn btn-light btn-sm" />
+                </form>
+            </td>
+            {% if current_user.is_authenticated %}
+            <td>
+                <form action="{{ url_for('wishlist.wishlist_add', product_id=item.product.id) }}" method="POST">
+                    <input type="submit" value="Add to Wishlist" class="btn btn-medium" />
+                </form>
+            </td>
+            <td>
+                <form action="{{ url_for('reviews.submit', product_id=item.product.id) }}" method="POST">
+                    <button type="submit" class="btn btn-medium">Submit Review</button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+
+        <!-- Description Modal -->
+      <div class="modal fade" id="descriptionModal{{ item.product.id }}" tabindex="-1" role="dialog" aria-labelledby="descriptionModalLabel{{ item.product.id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="descriptionModalLabel{{ item.product.id }}">Product Description</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              {{ item.product.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Modal -->
+      <div class="modal fade" id="imageModal{{ item.product.id }}" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel{{ item.product.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="imageModalLabel{{ item.product.id }}">{{ item.product.name }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body text-center">
+              <img src="{{ item.product.image_path }}" alt="Product Image" class="img-fluid">
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="mt-4">
+  <form method="GET" action="{{ url_for('product.get_all_or_top_k_products') }}" class="form-inline">
+      <input type="number" class="form-control" id="k" name="k" placeholder="Products per Page" value="{{ per_page }}" min="1">
+      <button type="submit" class="btn btn-light ml-2">Set</button>
+  </form>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination mt-3">
+        <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('product.get_all_or_top_k_products', page=current_page-1, k=per_page) }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% for p in range(1, (total_products // per_page) + 2) %}
+        <li class="page-item {% if p == current_page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('product.get_all_or_top_k_products', page=p, k=per_page) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        <li class="page-item {% if current_page == (total_products // per_page) + 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('product.get_all_or_top_k_products', page=current_page+1, k=per_page) }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+  </nav>
+</div>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<head>
+  <title>Review Seller</title>
+</head>
+
+<body>
+  <form method = "POST" action = "{{ url_for('reviews.submit_seller', seller_id = seller_id) }}">
+    {{ form.hidden_tag() }}
+    <p>
+      <label for = "rating">{{ form.rating.label }}</label>
+      {{ form.rating(min = 1, max = 5) }}
+    </p>
+    <p>
+      <label for = "details">{{ form.details.label }}</label>
+      {{ form.details(size = 32) }}
+    </p>
+    <p>{{ form.submit() }}</p>
+  </form>
+</body>
+
+{% endblock %}

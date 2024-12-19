@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Profile:</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+{% if current_user %}
+    <table class='table table-hover table-bordered container'>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Field</th>
+                <th scope="col">Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Name</strong></td>
+                <td>{{ current_user.firstname }} {{ current_user.lastname }}</td>
+            </tr>
+            <tr>
+                <td><strong>Email</strong></td>
+                <td>{{ current_user.email }}</td>
+            </tr>
+            <tr>
+                <td><strong>Password</strong></td>
+                <td>********</td>
+            </tr>
+            <tr>
+                <td><strong>Address</strong></td>
+                <td>{{ current_user.address }}</td>
+            </tr>
+            <tr>
+                <td><strong>Account Balance</strong></td>
+                <td>${{ profile_info.account_balance }}</td>
+                <form action="{{ url_for('myprofile.add_money') }}" method="POST" style="display: inline;">
+                    <input type="number" name="amount" placeholder="Amount to Add" required>
+                    <button type="submit" class="btn btn-black">Add Money</button>
+                 </form>
+            </tr>
+            <tr>
+                <form action="{{ url_for('myprofile.withdraw_money') }}" method="POST" style="display: inline;">
+                    <input type="number" name="withdraw" placeholder="Amount to Withdraw" required>
+                    <button type="submit" class="btn btn-black">Withdraw Funds</button>
+                 </form>
+            </tr>
+            <tr>
+                <td><strong>System Assigned ID</strong></td>
+                <td>{{ current_user.id }}</td>
+            </tr>
+            <tr>
+                <td><strong>Account Type</strong></td>
+                <td>{{ profile_info.account_type }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Update Profile Form -->
+    <form action="{{ url_for('myprofile.update_profile') }}" method="POST" class="mt-4">
+        <h3>Update Profile</h3>
+        <div class="form-group">
+            <label for="firstname">First Name:</label>
+            <input type="text" id="firstname" name="firstname" value="{{ current_user.firstname }}" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="lastname">Last Name:</label>
+            <input type="text" id="lastname" name="lastname" value="{{ current_user.lastname }}" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ current_user.email }}" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="text" id="password" name="password" value="{{ current_user.password }}" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" value="{{ profile_info.address }}" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="account_type">Account Type:</label>
+            <select id="account_type" name="account_type" class="form-control" required>
+                <option value="Buyer" {% if profile_info.account_type == 'Buyer' %}selected{% endif %}>Buyer</option>
+                <option value="Seller" {% if profile_info.account_type == 'Seller' %}selected{% endif %}>Seller</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Update Profile</button>
+    </form>
+
+    <!-- Delete Account Button -->
+    <form action="{{ url_for('users.delete_account') }}" method="POST" class="mt-4">
+        <button type="submit" class="btn btn-danger">Delete Account</button>
+    </form>
+
+{% else %}
+    <p>You need to log in to view your profile.</p>
+{% endif %}
+
+{% endblock %}

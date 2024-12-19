@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<br><br>
+<h2 style="font-family: 'Arial', sans-serif; color: #333;">Your Cart:</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Sorting Options -->
+<form method="get" action="" style="margin-bottom: 20px;">
+    <label for="sort_by" style="font-weight: bold;">Sort by:</label>
+    <select name="sort_by" id="sort_by" onchange="this.form.submit()" style="padding: 5px; border-radius: 5px; border: 1px solid #ccc;">
+        <option value="">Select</option>
+        <option value="name_asc" {% if request.args.get('sort_by') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+        <option value="name_desc" {% if request.args.get('sort_by') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+        <option value="price_asc" {% if request.args.get('sort_by') == 'price_asc' %}selected{% endif %}>Price (Low to High)</option>
+        <option value="price_desc" {% if request.args.get('sort_by') == 'price_desc' %}selected{% endif %}>Price (High to Low)</option>
+    </select>
+</form>
+
+<h2>{{ carts.uid }}</h2>
+
+<!-- Display cart items if available -->
+{% if carts and carts|length > 0 %}
+    {% set sorted_carts = carts %}
+    {% if request.args.get('sort_by') == 'name_asc' %}
+        {% set sorted_carts = carts | sort(attribute='product_name') %}
+    {% elif request.args.get('sort_by') == 'name_desc' %}
+        {% set sorted_carts = carts | sort(attribute='product_name', reverse=True) %}
+    {% elif request.args.get('sort_by') == 'price_asc' %}
+        {% set sorted_carts = carts | sort(attribute='price') %}
+    {% elif request.args.get('sort_by') == 'price_desc' %}
+        {% set sorted_carts = carts | sort(attribute='price', reverse=True) %}
+    {% endif %}
+
+    {% set total_quantity = sorted_carts | sum(attribute='quantity') %}
+
+    <!-- Pagination Variables -->
+    {% set page = request.args.get('page', 1) | int %}
+    {% set per_page = 10 %}
+    {% set total_pages = (sorted_carts|length // per_page) + (1 if sorted_carts|length % per_page > 0 else 0) %}
+    {% set paginated_carts = sorted_carts[(page - 1) * per_page : page * per_page] %}
+
+    <table class='table table-hover table-bordered container' style="background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <thead class="thead-dark" style="background-color: #343a40; color: #fff;">
+            <tr>
+                <th scope="col">Product ID</th>
+                <th scope="col">Product Name</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">User ID</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cart in paginated_carts %}
+                <tr style="background-color: #fff;">
+                    <th scope="row" style="padding: 10px;">{{ cart.pid }}</th>  <!-- Product ID -->
+                    <td style="padding: 10px;">{{ cart.product_name }}</td>    <!-- Product Name -->
+                    <td style="padding: 10px;">{{ cart.quantity }}</td>        <!-- Quantity -->
+                    <td style="padding: 10px;">${{ cart.price | round(2) }}</td> <!-- Price -->
+                    <td style="padding: 10px;">{{ cart.uid }}</td>             <!-- User ID -->
+                    <td style="padding: 10px;">
+                        <form method="POST" action="{{ url_for('carts.remove_item') }}" style="display: inline-block;">
+                            <input type="hidden" name="pid" value="{{ cart.pid }}">
+                            <button type="submit" class="btn btn-medium btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ page - 1 }}&sort_by={{ request.args.get('sort_by', '') }}" tabindex="-1">Previous</a>
+            </li>
+            {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {% if page == p %}active{% endif %}"><a class="page-link" href="?page={{ p }}&sort_by={{ request.args.get('sort_by', '') }}">{{ p }}</a></li>
+            {% endfor %}
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ page + 1 }}&sort_by={{ request.args.get('sort_by', '') }}">Next</a>
+            </li>
+        </ul>
+    </nav>
+    
+    <!-- Cart Total Quantity and Price -->
+    <p style="font-size: 24px; color: #103d13; font-weight: bold;">Total Quantity in Cart is {{ total_quantity }}</p>
+    <p style="font-size: 24px; color: #103d13; font-weight: bold;">Total Price: ${{ total_price | float | round(2) }}</p>
+
+    <form action="{{ url_for('carts.purchase_cart') }}" method="POST">
+        <button type="submit" class="btn btn-black">Purchase Items in Cart</button>
+    </form>
+
+    <form action="{{ url_for('carts.apply_coupon') }}" method="POST" style="margin-top: 20px;">
+        <div class="form-group">
+            <label for="coupon_code">Apply Coupon, only one may be used at a time:</label>
+            <input type="text" name="coupon_code" id="coupon_code" class="form-control" placeholder="Enter coupon code">
+        </div>
+        <button type="submit" class="btn btn-medium">Apply Coupon</button>
+    </form>
+
+{% else %}
+    <div class="empty-cart text-center" style="margin-top: 30px;">
+        <img src="/static/css/images/empty_cart.jpeg" alt="Your cart is empty" style="max-width: 600px; margin-bottom: 20px;">
+        <p style="font-family: 'Arial', sans-serif; color: #777; font-size: 18px;">You have no items in your cart yet.</p>
+        <a href="{{ url_for('product.get_all_or_top_k_products') }}" class="btn btn-black" style="padding: 10px 20px; font-size: 16px;">Continue Shopping</a>
+    </div>
+{% endif %}
+
+{% endblock %}

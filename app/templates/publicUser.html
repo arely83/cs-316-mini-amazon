@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>User ID: {{user.id}}</h2>
+    <p>Name: {{ user.firstname }} {{ user.lastname }}</p>
+    <p>Email: {{ user.email }}</p>
+    <form action="{{ url_for('reviews.get_user_reviews', user_id=user.id) }}" method="GET">
+        <button type="submit" class="btn btn-medium">See Reviews by {{ user.firstname }} {{ user.lastname }}</button>
+    </form>
+    <!-- <p>Address: {{ user.address }}</p> -->
+
+    {% if user.account_type == 'Seller' %}
+        <p>Address: {{ user.address }}</p>
+        <h3>Reviews about {{ user.firstname }}:</h3>
+        {% if reviews %}
+            <table class='table table-hover table-bordered container'>
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Rating</th>
+                        <th scope="col">Date Added</th>
+                        <th scope="col">Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('users.public_user', uid=review.uid) }}">
+                                    {{ review.uid }}
+                                </a>
+                            </td>
+                            <td>
+                                {% set full_stars = review.rating %}
+    
+                                {% for i in range(1, full_stars + 1) %}
+                                    &#9733;
+                                {% endfor %}
+    
+                                {% for i in range(full_stars, 5) %}
+                                    &#9734;
+                                {% endfor %}
+                            </td>
+                            <td>{{ humanize_time(review.time_posted) }}</td>
+                            <td>{{ review.details }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No reviews have been written about this user yet.</p>
+        {% endif %}
+
+        <form action="{{ url_for('reviews.submit_seller', seller_id=user.id) }}" method="POST">
+            <button type="submit" class="btn btn-medium">Submit Review</button>
+        </form>
+
+    {% else %}
+        <p>This user is not a seller.</p>
+    {% endif %}
+
+{% endblock %}

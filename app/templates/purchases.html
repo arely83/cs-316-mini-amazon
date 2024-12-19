@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<br><br>
+<h2 style="text-align: center; color: #4CAF50;">🛍️ Your Purchases 🛒</h2>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes container mt-3">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Sort Dropdowns -->
+<div class="container my-4">
+    <form method="get" action="{{ url_for('purchase.get_all_purchases_by_id') }}" class="form-inline justify-content-center">
+        <label for="sort_by" class="mr-2">🔀 Sort by:</label>
+        <select name="sort_by" id="sort_by" class="form-control mr-2">
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Product Name</option>
+            <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Total Price</option>
+            <option value="time_purchased" {% if sort_by == 'time_purchased' %}selected{% endif %}>Date Purchased</option>
+        </select>
+        
+        <label for="order" class="mr-2">📊 Order:</label>
+        <select name="order" id="order" class="form-control mr-2">
+            <option value="asc" {% if order == 'asc' %}selected{% endif %}>Ascending</option>
+            <option value="desc" {% if order == 'desc' %}selected{% endif %}>Descending</option>
+        </select>
+        
+        <button type="submit" class="btn btn-primary">🔍 Apply</button>
+    </form>
+</div>
+
+<!-- Purchases Table -->
+{% if purchases %}
+    <div class="container">
+        <table class='table table-hover table-bordered mt-4'>
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">🆔 Purchase ID</th>
+                    <th scope="col">📦 Product ID</th>
+                    <th scope="col">🏷️ Product Name</th>
+                    <th scope="col">🛒 Seller ID</th>
+                    <th scope="col">🔢 Quantity</th>
+                    <th scope="col">💰 Total Price</th>
+                    <th scope="col">📅 Date Purchased</th>
+                    <th scope="col">🚚 Fulfillment Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('fruit.fruit', purchase_id=purchase.id) }}" style="color: #007bff;">
+                                {{ purchase.id }}
+                            </a>
+                        </td>
+                        <td>{{ purchase.pid }}</td>
+                        <td><a href="{{ url_for('product.get_product', id=purchase.pid) }}" style="color: black;">
+                            {{ purchase.product_name }}
+                        </a></td>    
+                        <td>{{ purchase.sellerid }}</td>
+                        <td>{{ purchase.quantity }}</td>
+                        <td>{{ purchase.total_price if purchase.total_price else 'N/A' }}</td>
+                        <td>
+                            {% if purchase.time_purchased %}
+                                {{ humanize_time(purchase.time_purchased) }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if purchase.time_fulfilled %}
+                                ✅ Delivered {{ humanize_time(purchase.time_fulfilled) }}
+                            {% else %}
+                                🚧 Pending
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="text-center mt-5" style="font-size: 1.2em; color: gray;">🚫 You have no purchases yet. Start shopping to fill this list! 🛒</p>
+{% endif %}
+{% endblock %}

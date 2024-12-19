@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Mini Amazon</title>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/example.css') }}">
+  <style>
+    body {
+        font-family: "Lato", sans-serif;
+        background-color: #e8f5e9; /* Light green background */
+    }
+
+    .main-head {
+        height: 150px;
+        background: #a5d6a7; /* Soft green background */
+    }
+
+    .sidenav {
+        height: 100%;
+        background-color: #103d13; /* Dark green */
+        overflow-x: hidden;
+        padding-top: 20px;
+    }
+
+    .main {
+        padding: 0px 10px;
+    }
+
+    .login-main-text {
+        margin-top: 20%;
+        padding: 60px;
+        color: #e8f5e9; /* Light green text */
+    }
+
+    .login-main-text h2 {
+        font-weight: 300;
+    }
+
+    .btn-black {
+        background-color: #103d13 !important; /* Deep green */
+        color: #fff;
+    }
+
+    .btn-light {
+        background-color: #81c784 !important; /* Light green */
+        color: #fff;
+        border: none;
+    }
+
+    .btn-medium {
+        background-color: #4c9551 !important; /* Medium green */
+        color: #fff;
+    }
+
+    a {
+        color: #ffffff;
+    }
+
+    a:hover {
+        color: #c8e6c9; /* Lighter green on hover */
+    }
+
+    .pagination .page-link {
+    color: #81c784; /* Green text for the arrows and page numbers */
+    background-color: transparent; /* No background */
+    border: none; /* Remove border */
+    }
+
+    .pagination .page-link:hover {
+        color: #4c9551; /* Slightly darker green on hover */
+    }
+
+    .pagination .page-item.active .page-link {
+        color: white; /* White text for active page */
+        background-color: #81c784; /* Green background for active page */
+        border-radius: 5px; /* Optional: rounded corners */
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #c8e6c9; /* Light green for disabled state */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidenav">
+    {% block msg %}
+      <a href="/"><h1 style="color:aliceblue; margin-left: 25px; margin-bottom: 10px; margin-top: 5px;">Welcome to the 4AL Shop!</h1></a>
+      <div style="color: aliceblue; text-align: left; margin-bottom: 25px; margin-left: 25px; margin-right: 10px;">
+        {% if current_user.is_authenticated %}
+          Hello {{current_user.firstname}}! 
+          <a href="{{ url_for('product.get_all_or_top_k_products') }}" type="button" class="btn btn-light" style="margin-left: 10px;">Products</a>
+          <a href="{{ url_for('purchase.get_all_purchases_by_id') }}" type="button" class="btn btn-light" style="margin-left: 10px;">Purchase History</a>
+          
+          {% if current_user.account_type == 'Seller' %}
+            <a href="{{ url_for('inventory.inventory') }}" type="button" class="btn btn-light" style="margin-left: 10px;">Inventory</a>
+            <a href="{{ url_for('sellorders.sellorders') }}" type="button" class="btn btn-light" style="margin-left: 10px;">Sell Orders</a>
+          {% endif %}
+          
+          <a href="{{ url_for('reviews.get_current_user_reviews') }}" type="button" class="btn btn-light" style="margin-left: 10px;">Review History</a>
+          <a href="{{ url_for('fruit.fruit') }}" type="button" class="btn btn-light" style="margin-left: 10px;">Orders</a>
+          <a href="{{ url_for('wishlist.wishlist') }}" type="button" class="btn btn-medium" style="margin-left: 10px;">My Wishlist</a>
+          <a href="{{ url_for('carts.carts') }}" type="button" class="btn btn-medium" style="margin-left: 10px;">My Cart</a>
+          
+          <!-- Buttons in the top-right corner (profile and cart) -->
+          <div style="position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; align-items: flex-end;">
+            <a href="{{ url_for('myprofile.profile') }}" type="button" class="btn btn-medium mb-2">My Profile</a>
+            <a href="{{ url_for('users.logout') }}" type="button" class="btn btn-medium" style="margin-left: 10px;">Log out</a>
+          </div>
+        {% else %}
+          <a href="{{ url_for('users.login') }}" type="button" class="btn btn-light">Log in</a>
+        {% endif %}
+      </div>
+    {% endblock %}
+  </div>  
+  <div class="main">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+
+</html>

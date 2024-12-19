@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<br><br>
+<h2>Sell Orders (Items Bought from Me):</h2>
+
+{% if sellorders %}
+    <table class="table table-hover table-bordered container">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Order ID</th>
+                <th scope="col">Product ID</th>
+                <th scope="col">Product Name</th>
+                <th scope="col">Buyer Name</th>
+                <th scope="col">Address</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">Total Amount</th>
+                <th scope="col">Date Ordered</th>
+                <th scope="col">Fulfillment Status</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sellorder in sellorders %}
+            <tr>
+                <td>{{ sellorder['order_id'] }}</td>
+                <td>{{ sellorder['pid'] }}</td>
+                <td>{{ sellorder['product_name'] }}</td>
+                <td>{{ sellorder['buyer_name'] }}</td>
+                <td>{{ sellorder['address'] }}</td>
+                <td>{{ sellorder['quantity'] }}</td>
+                <td>${{ sellorder['price'] | round(2) }}</td>
+                <td>${{ sellorder['total_amount'] | round(2) }}</td>
+                <td>{{ humanize_time(sellorder['time_ordered']) }}</td>
+                <td>
+                    {% if sellorder['time_fulfilled'] %}
+                        <span class="badge badge-success">Fulfilled</span>
+                        <br>
+                        <small>{{ sellorder['time_fulfilled'] }}</small>
+                    {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not sellorder['time_fulfilled'] %}
+                    <form action="{{ url_for('sellorders.fulfill_order', order_id=sellorder['order_id']) }}" method="post">
+                        <button type="submit" class="btn btn-primary btn-sm">Mark as Fulfilled</button>
+                    </form>
+                    {% else %}
+                        <span class="text-success">Completed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No sell orders found for you.</p>
+{% endif %}
+
+{% endblock %}

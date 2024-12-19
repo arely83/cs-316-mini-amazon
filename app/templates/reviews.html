@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Styling</title>
+    <style>
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem; 
+            margin-top: 2rem; 
+        }
+
+        .btn.disabled {
+            background-color: #555; 
+            color: white;
+            cursor: not-allowed; 
+        }
+
+        .btn:not(.disabled) {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .btn:not(.disabled):hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<h2>Your Reviews:</h2>
+
+<p>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+</p>
+
+<div class="button-container">
+    <form action="{{ url_for('reviews.get_current_user_reviews') }}" method="GET">
+        <button 
+            type="submit" 
+            class="btn btn-medium {% if request.endpoint == 'reviews.get_current_user_reviews' %}disabled{% endif %}">
+            Product Reviews
+        </button>
+    </form>
+
+    <form action="{{ url_for('reviews.get_current_user_reviews_s') }}" method="GET">
+        <button 
+            type="submit" 
+            class="btn btn-medium {% if request.endpoint == 'reviews.get_current_user_reviews_s' %}disabled{% endif %}">
+            Seller Reviews
+        </button>
+    </form>
+</div>
+
+<div style="height: 20px;"></div>
+
+{% if reviews %}
+    <table class='table table-hover table-bordered container'>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Product Name</th>
+                <th scope="col">User ID</th>
+                <th scope="col"><a href="{{ url_for('reviews.get_current_user_reviews', sort_by = 'rating', order = 'ASC' if order == 'DESC' else 'DESC') }}">Rating</a></th>
+                <th scope="col"><a href="{{ url_for('reviews.get_current_user_reviews', sort_by = 'time_posted', order = 'ASC' if order == 'DESC' else 'DESC') }}">Date Added</a></th>
+                <th scope="col">Review</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+                <tr>
+                    <td>{{ Product.get_name(review.pid) }}</td>
+                    <td>{{ review.uid }}</td>
+                    <td>
+                        {% set full_stars = review.rating %}
+    
+                        {% for i in range(1, full_stars + 1) %}
+                            &#9733;
+                        {% endfor %}
+    
+                        {% for i in range(full_stars, 5) %}
+                            &#9734;
+                        {% endfor %}
+                    </td>
+                    <td>{{ humanize_time(review.time_posted) }}</td>
+                    <td>{{ review.details }}</td>
+                    <td>
+                        <form action="{{ url_for('reviews.update', product_id=review.pid) }}" method="POST">
+                            <button type="submit" class="btn btn-medium">Update Review</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('reviews.delete', product_id=review.pid) }}" method="POST">
+                            <button type="submit" class="btn btn-medium">Delete Review</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>You have not submitted any product reviews.</p>
+{% endif %}
+
+<div class = "pages">
+    {% if page_number > 1 %}
+    <a href ="?page_number ={{ page_number - 1 }}" class = "button">Previous</a>
+    {% endif %}
+
+    <span>Page {{ page_number }}</span>
+
+    {% if reviews|length == 10 %}
+    <a href="?page_number={{ page_number + 1 }}" class = "button">Next</a>
+    {% endif %}
+</div>
+
+
+{% endblock %}

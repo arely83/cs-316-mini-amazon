@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<br><br>
+<h2>Items you have sold:</h2>
+
+{% if saleitems %}
+    <table class='table table-hover table-bordered container'>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">SaleItem ID</th>
+                <th scope="col">Product ID</th>
+                <!-- <th scope="col">Product Name</th> -->
+                <th scope="col">Date Added</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for saleitem in saleitems %}
+                <tr>
+                    <td>{{ saleitem.id }}</td>
+                    <td>{{ saleitem.pid }}</td>
+                    <td>{{ humanize_time(saleitem.time_ordered) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>You have no items for sale yet. <i><a href="/">Get another user to purchase from you here!</a></i></p>
+{% endif %}
+
+{% endblock %}
